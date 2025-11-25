@@ -7,7 +7,7 @@ import TheExperience from './components/TheExperience.vue'
 <template>
   <!-- <h1 class="test">GAMBERGE</h1> -->
   <TresCanvas
-    clear-color="#82DBC5"
+    clear-color="#000000"
     window-size
   >
     <TheExperience />

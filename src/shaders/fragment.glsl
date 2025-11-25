@@ -15,6 +15,12 @@ uniform float uLacunarity;
 uniform vec2 uIntensity;
 uniform float uShadowIntensity;
 
+uniform vec3 uLightDirection; // Direction du soleil (X, Y, Z)
+uniform float uBumpStrength;  // Profondeur du relief (0.1 = plat, 2.0 = très creusé)
+uniform float uSpecularPower; // Brillance (10.0 = gomme, 64.0 = verre mouillé)
+
+uniform float uScale; 
+
 varying vec2 vUv;
 
 // Source: Ashima Arts / Stefan Gustavson
@@ -71,42 +77,66 @@ mat2 rotate2d(float angle) {
     return mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
 }
 
-void main() {
+float map(vec2 uv, float time) {
     vec2 center = vec2(0.5);
-    vec2 centeredUv = vUv - center;
+    vec2 centeredUv = uv - center;
 
-    vec2 rotatedUv = rotate2d(uTime * uRotationSpeed) * centeredUv;
+    vec2 rotatedUv = rotate2d(time * uRotationSpeed) * centeredUv;
     rotatedUv += center;
+
+    vec2 p = rotatedUv * uScale;
 
     // Premiere deformation
     vec2 q = vec2(0.0);
-    q.x = fbm(rotatedUv + uTime * uSpeed.x);
-    q.y = fbm(rotatedUv + vec2(5.2, 1.3) + uTime * uSpeed.y); // Petit décalage pour éviter un effet diagonal
+    q.x = fbm(p  + time * uSpeed.x);
+    q.y = fbm(p  + vec2(5.2, 1.3) + time * uSpeed.y); // Petit décalage pour éviter un effet diagonal
 
     // Seconde deformation
     vec2 r = vec2(2.0);
-    r.x = fbm(rotatedUv + q * uIntensity.x + vec2(1.7, 9.2) + uTime * uSpeed.x);
-    r.y = fbm(rotatedUv + q * uIntensity.x + vec2(8.3, 2.8) + uTime * uSpeed.y);
+    r.x = fbm(p  + q * uIntensity.x + vec2(1.7, 9.2) + time * uSpeed.x);
+    r.y = fbm(p  + q * uIntensity.x + vec2(8.3, 2.8) + time * uSpeed.y);
 
     // Troisième deformation
-    vec2 s = vec2(0.0);
-    s.x = fbm(rotatedUv + r * uIntensity.y + vec2(10.2, 4.5)+ uTime * uSpeed.x);
-    s.y = fbm(rotatedUv + r * uIntensity.y + vec2(7.5, 5.7)+ uTime * uSpeed.y);
+    // vec2 s = vec2(0.0);
+    // s.x = fbm(rotatedUv + r * uIntensity.y + vec2(10.2, 4.5) + time * uSpeed.x);
+    // s.y = fbm(rotatedUv + r * uIntensity.y + vec2(7.5, 5.7) + time * uSpeed.y);
 
     // On rend le resultat entre 0 et 1
-    float noiseValue = fbm(rotatedUv + s * uDistortionStrength) * 0.5 + 0.5;
+    float noiseValue = fbm(p  + r * uDistortionStrength) * 0.5 + 0.5;
 
-    // Couleur 
-    vec3 col = mix(uColorBg, uColorMid, step(uTreshold1, noiseValue));
-    col = mix(col, uColorTop, step(uTreshold2, noiseValue));
+    return noiseValue;
+}
 
-    // Ombre
-    float shadow = length(s) * uShadowIntensity;
-    col *= (1.0 - shadow);
+void main() {
+    float h = map(vUv, uTime);
 
-    // Lumière
-    float whiteMask = step(0.8, noiseValue);
-    col = mix(col, vec3(1.0), whiteMask);
+    vec2 e = vec2(0.01, 0.0);
+
+    vec3 normal = normalize(vec3((map(vUv - e.xy, uTime) - map(vUv + e.xy, uTime)) * uBumpStrength, (map(vUv - e.yx, uTime) - map(vUv + e.yx, uTime)) * uBumpStrength, 1.0 // Le Z reste fixe, c'est le ratio avec X et Y qui compte
+    ));
+
+    // --- LUMIÈRE ---
+    vec3 lightDir = normalize(uLightDirection);
+
+    float rawDiff = max(dot(normal, lightDir), 0.0);
+    float diffToon = smoothstep(0.3, 0.35, rawDiff); 
+
+    vec3 viewDir = vec3(0.0, 0.0, 1.0);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float rawSpec = pow(max(dot(viewDir, reflectDir), 0.0), uSpecularPower);
+
+    float specToon = smoothstep(0.42, 0.41, rawSpec);
+
+    float aa = 0.001; // Épaisseur de l'anti-aliasing
+    vec3 col = mix(uColorBg, uColorMid, smoothstep(uTreshold1, uTreshold1 + aa, h));
+    col = mix(col, uColorTop, smoothstep(uTreshold2, uTreshold2 + aa, h));
+
+    col *= (diffToon * 0.5 + 1.0); 
+    col += specToon;
+
+    // float rim = 1.0 - max(dot(normal, viewDir), 0.0);
+    // float rimToon = smoothstep(0.6, 0.65, rim);
+    // col += rimToon * 0.1;
 
     gl_FragColor = vec4(col, 1.0);
 }
