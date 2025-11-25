@@ -11,7 +11,7 @@ import fragmentShader from '../shaders/fragment.glsl'
 const { onBeforeRender } = useLoop()
 
 const boxRef = shallowRef<TresObject | null>(null)
-let pane = null;
+let pane: Pane | any = null
 
 const uniforms = shallowRef({
   uTime: { value: 0.0 },
@@ -72,36 +72,36 @@ onMounted(() => {
 
   // Gestion des couleurs
   const fColors = pane.addFolder({ title: 'Couleurs' });
-  fColors.addBinding(params, 'colorBg').on('change', ev => {
+  fColors.addBinding(params, 'colorBg').on('change', (ev : any) => {
     uniforms.value.uColorBg.value.set(ev.value)
   })
-  fColors.addBinding(params, 'colorMid').on('change', ev => {
+  fColors.addBinding(params, 'colorMid').on('change', (ev : any) => {
     uniforms.value.uColorMid.value.set(ev.value)
   })
-  fColors.addBinding(params, 'colorTop').on('change', ev => {
+  fColors.addBinding(params, 'colorTop').on('change', (ev : any) => {
     uniforms.value.uColorTop.value.set(ev.value)
   })
-  fColors.addBinding(params, 'treshold1', { min: 0.0, max: 1.0 }).on('change', ev => {
+  fColors.addBinding(params, 'treshold1', { min: 0.0, max: 1.0 }).on('change', (ev : any) => {
     uniforms.value.uTreshold1.value = ev.value
   })
-  fColors.addBinding(params, 'treshold2', { min: 0.0, max: 1.0 }).on('change', ev => {
+  fColors.addBinding(params, 'treshold2', { min: 0.0, max: 1.0 }).on('change', (ev : any) => {
     uniforms.value.uTreshold2.value = ev.value
   })
 
   // Distortion
   const fParameters = pane.addFolder({ title: 'Paramètres' })
-  fParameters.addBinding(params, 'scale', { min: 0.0, max: 20.0 }).on('change', ev => {
+  fParameters.addBinding(params, 'scale', { min: 0.0, max: 20.0 }).on('change', (ev : any) => {
     uniforms.value.uScale.value = ev.value;
   })
-  fParameters.addBinding(params, 'strength', { min: 0.1, max: 20.0 }).on('change', ev => {
+  fParameters.addBinding(params, 'strength', { min: 0.1, max: 20.0 }).on('change', (ev : any) => {
     uniforms.value.uDistortionStrength.value = ev.value;
   })
   // Lacunarité
-  fParameters.addBinding(params, 'lacunarity', { min: 0.0, max: 10.0 }).on('change', ev => {
+  fParameters.addBinding(params, 'lacunarity', { min: 0.0, max: 10.0 }).on('change', (ev : any) => {
     uniforms.value.uLacunarity.value = ev.value
   })
   // Intensité
-  pane.addBinding(params, 'intensityX', { min: 0, max: 10.0 }).on('change', ev => {
+  pane.addBinding(params, 'intensityX', { min: 0, max: 10.0 }).on('change', (ev : any) => {
     uniforms.value.uIntensity.value.x = ev.value
   })
   // pane.addBinding(params, 'intensityY', { min: 0, max: 10.0 }).on('change', ev => {
@@ -110,25 +110,25 @@ onMounted(() => {
 
   // Vitesse
   const fSpeed = pane.addFolder({ title: 'Vitesse' });
-  fSpeed.addBinding(params, 'speedX', { min: -1.0, max: 1.0 }).on('change', ev => {
+  fSpeed.addBinding(params, 'speedX', { min: -1.0, max: 1.0 }).on('change', (ev : any) => {
     uniforms.value.uSpeed.value.x = ev.value
   })
-  fSpeed.addBinding(params, 'speedY', { min: -1.0, max: 1.0 }).on('change', ev => {
+  fSpeed.addBinding(params, 'speedY', { min: -1.0, max: 1.0 }).on('change', (ev : any) => {
     uniforms.value.uSpeed.value.y = ev.value
   })
   // Rotation
-  fSpeed.addBinding(params, 'rotationSpeed', { min: -1.0, max: 1.0 }).on('change', ev => {
+  fSpeed.addBinding(params, 'rotationSpeed', { min: -1.0, max: 1.0 }).on('change', (ev : any) => {
     uniforms.value.uRotationSpeed.value = ev.value
   })
 
   // Lumiere
   const fLight = pane.addFolder({ title: 'Lumière & Relief' });
 
-  fLight.addBinding(params, 'bumpStrength', { min: 0.1, max: 5.0 }).on('change', (ev) => {
+  fLight.addBinding(params, 'bumpStrength', { min: 0.1, max: 5.0 }).on('change', (ev : any) => {
     uniforms.value.uBumpStrength.value = ev.value;
   });
 
-  fLight.addBinding(params, 'specularPower', { min: 0.0, max: 128.0 }).on('change', (ev) => {
+  fLight.addBinding(params, 'specularPower', { min: 0.0, max: 128.0 }).on('change', (ev : any) => {
     uniforms.value.uSpecularPower.value = ev.value;
   });
 
@@ -137,10 +137,10 @@ onMounted(() => {
   // });
 
   // Direction de la lumière
-  fLight.addBinding(params, 'lightX', { min: -1, max: 1 }).on('change', (ev) => {
+  fLight.addBinding(params, 'lightX', { min: -1, max: 1 }).on('change', (ev : any) => {
     uniforms.value.uLightDirection.value.x = ev.value;
   });
-  fLight.addBinding(params, 'lightY', { min: -1, max: 1 }).on('change', (ev) => {
+  fLight.addBinding(params, 'lightY', { min: -1, max: 1 }).on('change', (ev : any) => {
     uniforms.value.uLightDirection.value.y = ev.value;
   });
 
